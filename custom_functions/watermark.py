@@ -8,7 +8,7 @@ watermark_overlay = None
 LUMEO_LOGO_URL = "https://assets.lumeo.com/media/logo/lumeo-blackbg-vertical-80.png"
 
 
-def process_frame(frame: VideoFrame, image_url = LUMEO_LOGO_URL, **kwargs) -> bool:
+def process_frame(frame: VideoFrame, image_url = None, configuration = {}, **kwargs) -> bool:
 
     global watermark_overlay
     global first_run
@@ -21,7 +21,8 @@ def process_frame(frame: VideoFrame, image_url = LUMEO_LOGO_URL, **kwargs) -> bo
                 height = frame.video_info().height            
                 
                 # Get watermark image from URL
-                (wH, wW, watermark) = download_watermark_from_url(image_url, height, width)
+                download_url = image_url or configuration.get("image_url", LUMEO_LOGO_URL)
+                (wH, wW, watermark) = download_watermark_from_url(download_url, height, width)
                 # print("watermark: {} {} image: {} {}".format(wH,wW,height, width))
                 
                 # If we have one, set the watermark overlay. 
