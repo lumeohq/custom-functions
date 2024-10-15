@@ -4,7 +4,7 @@ print(find_packages())  # Add this line to debug
 
 setup(
     name='custom_functions',
-    version='0.1.2',
+    version='0.1.3',
     packages=find_packages(),
     install_requires=[
         # List your runtime dependencies here
