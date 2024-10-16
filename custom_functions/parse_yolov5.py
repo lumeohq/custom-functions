@@ -2,6 +2,7 @@ from lumeopipeline import VideoFrame
 import numpy as np
 import torch
 import torchvision
+import traceback
 
 # Global variables and one-time initialization
 node = {
@@ -33,37 +34,43 @@ def process_frame(frame: VideoFrame, **kwargs) -> bool:
     if not node['initialized']:
         initialize(**kwargs)
     
-    with frame.data() as mat:
-        height, width = mat.shape[:2]
+    try:
+        with frame.data() as mat:
+            height, width = mat.shape[:2]
 
-        # Process frame level tensors        
-        tensors = frame.tensors()
-        output_data = next((np.asarray(layer.data).reshape(layer.dimensions)
-                            for tensor in tensors if (tensor.source_node_id == node['model_node_id'] or (tensor.model_id and tensor.model_id == node['model_id']))
-                            for layer in tensor.layers if layer.name == node['output_layer_name']), None)
-        
-        if output_data is not None:
-            output_objects.extend(extract_objects(output_data, height, width))
+            # Process frame level tensors        
+            tensors = frame.tensors()
+            output_data = next((np.asarray(layer.data).reshape(layer.dimensions)
+                                for tensor in tensors if (tensor.source_node_id == node['model_node_id'] or (tensor.model_id and tensor.model_id == node['model_id']))
+                                for layer in tensor.layers if layer.name == node['output_layer_name']), None)
+            
+            if output_data is not None:
+                output_objects.extend(extract_objects(output_data, height, width))
 
-        # Process object level tensors if the model runs as a secondary model
-        object_tensors = frame.object_tensors()
-        if len(detected_objects) > 0 and len(object_tensors) > 0:
-            for obj, obj_tensor in zip(detected_objects, object_tensors):                        
-                output_data = next((np.asarray(layer.data).reshape(layer.dimensions)
-                                    for tensor in obj_tensor.tensors
-                                    if (tensor.source_node_id == node['model_node_id'] or (tensor.model_id and tensor.model_id == node['model_id']))
-                                    for layer in tensor.layers
-                                    if layer.name == node['output_layer_name']), None)
-                if output_data is not None:
-                    extracted_objects = extract_objects(output_data, obj['rect']['height'], obj['rect']['width'])
-                    for extracted_obj in extracted_objects:
-                        extracted_obj['rect']['left'] += obj['rect']['left']
-                        extracted_obj['rect']['top'] += obj['rect']['top']
-                    output_objects.extend(extracted_objects)
+            # Process object level tensors if the model runs as a secondary model
+            object_tensors = frame.object_tensors()
+            if len(detected_objects) > 0 and len(object_tensors) > 0:
+                for obj, obj_tensor in zip(detected_objects, object_tensors):                        
+                    output_data = next((np.asarray(layer.data).reshape(layer.dimensions)
+                                        for tensor in obj_tensor.tensors
+                                        if (tensor.source_node_id == node['model_node_id'] or (tensor.model_id and tensor.model_id == node['model_id']))
+                                        for layer in tensor.layers
+                                        if layer.name == node['output_layer_name']), None)
+                    if output_data is not None:
+                        extracted_objects = extract_objects(output_data, obj['rect']['height'], obj['rect']['width'])
+                        for extracted_obj in extracted_objects:
+                            extracted_obj['rect']['left'] += obj['rect']['left']
+                            extracted_obj['rect']['top'] += obj['rect']['top']
+                        output_objects.extend(extracted_objects)
                                         
-    if output_objects:
-        detected_objects.extend(output_objects)
-        save_metadata(frame, detected_objects)
+        if output_objects:
+            #print(f"Saving metadata for {len(output_objects)} objects: {output_objects}")
+            detected_objects.extend(output_objects)
+            save_metadata(frame, detected_objects)
+
+    except Exception as e:
+        print(f"Error processing frame: {e}")
+        traceback.print_exc()
 
     return True
 
