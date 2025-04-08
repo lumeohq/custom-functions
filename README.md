@@ -34,7 +34,7 @@ def process_frame(frame: VideoFrame, **kwargs):
     return watermark.process_frame(frame, **kwargs)
 ```
 
-2. Using the `Custom Function Repo` node in Lumeo.
+2. Using the [Custom Function Repo](https://docs.lumeo.com/docs/custom-function-repo-node) node in Lumeo and configuring it to pull code directly from Github repo.
 
 
 
@@ -42,9 +42,9 @@ def process_frame(frame: VideoFrame, **kwargs):
 
 You can build your own custom functions and use them in one of two ways:
 
-1. Put the entire custom function code into the [Custom Function Node](https://docs.lumeo.com/docs/custom-function-node) in Lumeo.
+1. Put the entire custom function code into the [Custom Function Node](https://docs.lumeo.com/docs/custom-function-node) in Lumeo. This is great for quick build-and-test workflow.
 
-2. Host the custom function code in a github repository and use the `Utils.install_import` method or `Custom Function Repo` node to import and use the custom function.
+2. Host the custom function code in a github repository and use the `Utils.install_import` method or [Custom Function Repo](https://docs.lumeo.com/docs/custom-function-repo-node) node to import and use the custom function.
 
 While the first approach is easier to setup and iterate on while developing, the second approach allows you to version control your custom functions and reuse them across multiple pipelines.
 
@@ -52,11 +52,11 @@ While the first approach is easier to setup and iterate on while developing, the
 
 Install `lumeo` python package:
 ```
-pip install lumeo
+pip install 'lumeo[all]'
 ```
 or 
 ```
-pipx install lumeo
+pipx install 'lumeo[all]'
 ```
 
 Navigate to the directory you want to create your custom function repo in, and run the following command:
@@ -64,4 +64,4 @@ Navigate to the directory you want to create your custom function repo in, and r
 lumeo-custom-function-create-repo <package_name>
 ```
 
-This will create a new directory with the name you provided, with a basic structure for a custom function repo. You can then add your custom functions to the repo and publish to a git repository.
+This will create a new directory with the name you provided, with a basic structure for a custom function repo, just like this repo. You can then add your custom functions to that repo and publish to a git repository.
